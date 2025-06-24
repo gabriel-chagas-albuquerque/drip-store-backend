@@ -4,9 +4,9 @@ const Product = require("./Product");
 
 
 class ImageProduct extends Model {
-  static association() {
-    ImageProduct.belongsTo(Product,{foreignKey: "product_id"})
-  }
+   static association() {
+     ImageProduct.belongsTo(Product,{foreignKey: "product_id"})
+   }
 }
 
 ImageProduct.init(
@@ -25,6 +25,7 @@ ImageProduct.init(
         model: Product,
         key: "id",
       },
+      onDelete: "CASCADE"
     },
     enabled: {
       type: DataTypes.BOOLEAN,

@@ -1,27 +1,23 @@
 const { DataTypes, Model } = require("sequelize");
 const sequelize = require("../config/database");
 
-class User extends Model {
-  static associate({Profile}) {
-    User.hasOne(Profile, {foreignKey: "userId"})
-  }
-}
+class User extends Model {}
 
 User.init(
   {
     id: {
       type: DataTypes.INTEGER,
-      allowNull:false,
+      allowNull: false,
       primaryKey: true,
       autoIncrement: true,
     },
     firstname: {
       type: DataTypes.STRING,
-      allowNull:false
+      allowNull: false,
     },
     surname: {
       type: DataTypes.STRING,
-      allowNull:false
+      allowNull: false,
     },
     email: {
       type: DataTypes.STRING,
@@ -30,13 +26,13 @@ User.init(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
   },
   {
     sequelize: sequelize,
     modelName: "user",
-    tableName: "users"
+    tableName: "users",
   }
 );
 

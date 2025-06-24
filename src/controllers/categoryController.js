@@ -1,6 +1,11 @@
 const Category = require("../models/Category");
+const Product = require("../models/Product");
+const ProductsCategory = require("../models/ProductsCategory");
 
 class CategoryController {
+  constructor() {
+    Category.associate(Product, ProductsCategory);
+  }
   async search(req, res) {
     try {
       const { limit = 12, page = 1, fields, use_in_menu } = req.query;
@@ -8,28 +13,29 @@ class CategoryController {
       const parsedLimit = parseInt(limit);
       const parsedPage = parseInt(page);
 
-      const attributes = fields ? fields.split(",") : {exclude: ['createdAt', 'updatedAt']};
+      const attributes = fields
+        ? fields.split(",")
+        : { exclude: ["createdAt", "updatedAt"] };
 
       const where = {};
       if (use_in_menu !== undefined) {
         where.use_in_menu = use_in_menu === "true";
       }
-
+      console.log(where);
       const queryOptions = { where, attributes };
 
-      if (parsedLimit!== -1) {
-        
+      if (parsedLimit !== -1) {
         queryOptions.limit = parsedLimit;
         queryOptions.offset = (parsedPage - 1) * parsedLimit;
       }
 
-      const categories = await Category.findAndCountAll(queryOptions)
+      const categories = await Category.findAndCountAll(queryOptions);
 
       return res.status(200).json({
         data: categories.rows,
-        total:categories.count,
+        total: categories.count,
         limit: parsedLimit,
-        page:parsedPage
+        page: parsedPage,
       });
     } catch (error) {
       return res
@@ -43,8 +49,8 @@ class CategoryController {
       const id = req.params.id;
       const category = await Category.findByPk(id, {
         attributes: {
-          exclude: ['createdAt', 'updatedAt']
-        }
+          exclude: ["createdAt", "updatedAt"],
+        },
       });
       if (!category) {
         return res.status(404).json({ message: "A categoria não existe" });
@@ -67,8 +73,7 @@ class CategoryController {
       //  }
       if (!body.name || !body.slug) {
         return res.status(400).json({
-          message:
-            "Todos os campos são obrigatórios (name, slug)",
+          message: "Todos os campos são obrigatórios (name, slug)",
         });
       }
       const newCategory = await Category.create(body);

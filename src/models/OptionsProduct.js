@@ -4,8 +4,8 @@ const Product = require("./Product");
 
 class OptionsProduct extends Model {
   static association() {
-    OptionsProduct.belongsTo(Product,{foreignKey: "product_id"})
-  }
+     OptionsProduct.belongsTo(Product,{foreignKey: "product_id"})
+   }
 }
 
 OptionsProduct.init(
@@ -22,7 +22,8 @@ OptionsProduct.init(
       references: {
         model: Product,
         key: "id"
-      }
+      },
+      onDelete: "CASCADE"
     },
     title: {
       type:DataTypes.STRING,

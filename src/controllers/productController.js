@@ -1,45 +1,130 @@
+const Category = require('../models/Category');
 const ImageProduct = require('../models/ImageProduct');
 const OptionsProduct = require('../models/OptionsProduct');
 const Product = require('../models/Product')
+const { Op } = require('sequelize');
+const ProductsCategory = require('../models/ProductsCategory');
 
 class ProductController {
     constructor() {
-        Product.associate(ImageProduct, OptionsProduct)
+        Product.associate(ImageProduct, OptionsProduct, Category, ProductsCategory)
     }
     async search(req, res) {
     try {
-      const { limit = 12, page = 1, fields, use_in_menu } = req.query;
+             const { 
+                limit = 12, 
+                page = 1, 
+                fields, 
+                match, 
+                category_ids, 
+                'price-range': priceRange, 
+                option 
+            } = req.query;
 
-      const parsedLimit = parseInt(limit);
-      const parsedPage = parseInt(page);
+            const parsedLimit = parseInt(limit);
+            const parsedPage = parseInt(page);
 
-      const attributes = fields ? fields.split(",") : {exclude: ['createdAt', 'updatedAt']};
+            let attributes;
+            if (fields) {
+                attributes = fields.split(",");
+            } else {
+                attributes = { exclude: ['createdAt', 'updatedAt'] };
+            }
 
-      const where = {};
-      if (use_in_menu !== undefined) {
-        where.use_in_menu = use_in_menu === "true";
-      }
+            const queryOptions = {
+                attributes,
+                include: [
+                    {
+                        model: ImageProduct,
+                        attributes: fields && fields.includes('images') ? undefined : ['id','path']
+                    },
+                    {
+                        model: OptionsProduct,
+                        attributes: ['id', 'title', 'shape', 'radius', 'type', 'values']
+                    }
+                ],
+                where: {}
+            };
+            if (parsedLimit !== -1) {
+                queryOptions.limit = parsedLimit;
+                queryOptions.offset = (parsedPage - 1) * parsedLimit;
+            }
+            if (match) {
+                queryOptions.where[Op.or] = [
+                    { name: { [Op.like]: `%${match}%` } },
+                    { description: { [Op.like]: `%${match}%` } }
+                ];
+            }
 
-      const queryOptions = { where, attributes };
+            if (category_ids) {
+                const categoryArray = category_ids.split(',').map(id => parseInt(id.trim()));
+                queryOptions.where.category_id = { [Op.in]: categoryArray };
+            }
 
-      if (parsedLimit!== -1) {
-        
-        queryOptions.limit = parsedLimit;
-        queryOptions.offset = (parsedPage - 1) * parsedLimit;
-      }
+            // Filtro por faixa de preço
+            if (priceRange) {
+                const [minPrice, maxPrice] = priceRange.split('-').map(price => parseFloat(price.trim()));
+                if (minPrice && maxPrice) {
+                    queryOptions.where.price = {
+                        [Op.between]: [minPrice, maxPrice]
+                    };
+                } else if (minPrice) {
+                    queryOptions.where.price = {
+                        [Op.gte]: minPrice
+                    };
+                } else if (maxPrice) {
+                    queryOptions.where.price = {
+                        [Op.lte]: maxPrice
+                    };
+                }
+            }
 
-      const categories = await Category.findAndCountAll(queryOptions)
+            if (option) {
+                const optionFilters = [];
+                
+                for (const [key, value] of Object.entries(option)) {
+                    if (key.startsWith('[') && key.endsWith(']')) {
+                        const optionId = key.slice(1, -1);
+                        const optionValues = value.split(',').map(v => v.trim());
+                        
+                        optionFilters.push({
+                            id: parseInt(optionId),
+                            values: optionValues
+                        });
+                    }
+                }
 
-      return res.status(200).json({
-        data: categories.rows,
-        total:categories.count,
-        limit: parsedLimit,
-        page:parsedPage
-      });
+                if (optionFilters.length > 0) {
+                    queryOptions.include[1].where = {
+                        [Op.or]: optionFilters.map(filter => ({
+                            id: filter.id,
+                            values: {
+                                [Op.overlap]: filter.values
+                            }
+                        }))
+                    };
+                    queryOptions.include[1].required = true;
+                }
+            }
+
+      const products = await Product.findAndCountAll(queryOptions)
+
+       return res.status(200).json({
+                data: products.rows,
+                total: products.count,
+                limit: parsedLimit,
+                page: parsedPage,
+                filters: {
+                    match: match || null,
+                    category_ids: category_ids || null,
+                    price_range: priceRange || null,
+                    option: option || null
+                }
+            });
     } catch (error) {
       return res
         .status(500)
-        .json({ message: "Erro ao buscar categorias", error: error.message });
+        .json({ message: "Erro ao buscar os produtos", error: error.message });
     }
   }
 
