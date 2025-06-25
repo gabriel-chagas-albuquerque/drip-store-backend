@@ -159,11 +159,6 @@ class ProductController {
   async register(req, res) {
     try {
       const body = req.body;
-      //  if (!req.user) {
-      //    return res
-      //      .status(401)
-      //      .json({ message: "Não autorizado: token inválido ou ausente" });
-      //  }
 
       const {name, slug, price, price_with_discount} = body
       if (!name || !slug || !price || !price_with_discount) {
@@ -229,11 +224,6 @@ class ProductController {
   async delete(req, res) {
     try {
       const id = req.params.id;
-      // if (!req.user) {
-      //   return res
-      //     .status(401)
-      //     .json({ message: "Não autorizado: token inválido ou ausente" });
-      // }
 
       const deletedProduct = await Product.destroy({
         where: {

@@ -111,12 +111,6 @@ class UserController {
   async delete(req, res) {
     try {
       const id = req.params.id;
-      // if (!req.user) {
-      //   return res
-      //     .status(401)
-      //     .json({ message: "Não autorizado: token inválido ou ausente" });
-      // }
-
       const deletedUser = await User.destroy({
         where: {
           id: id,

@@ -66,11 +66,7 @@ class CategoryController {
   async register(req, res) {
     try {
       const body = req.body;
-      //  if (!req.user) {
-      //    return res
-      //      .status(401)
-      //      .json({ message: "Não autorizado: token inválido ou ausente" });
-      //  }
+
       if (!body.name || !body.slug) {
         return res.status(400).json({
           message: "Todos os campos são obrigatórios (name, slug)",
@@ -90,11 +86,6 @@ class CategoryController {
     try {
       const id = req.params.id;
       const body = req.body;
-      // if (!req.user) {
-      //   return res
-      //     .status(401)
-      //     .json({ message: "Não autorizado: token inválido ou ausente" });
-      // }
 
       if (!body || Object.keys(body).length === 0) {
         return res.status(400).json({
@@ -124,11 +115,6 @@ class CategoryController {
   async delete(req, res) {
     try {
       const id = req.params.id;
-      // if (!req.user) {
-      //   return res
-      //     .status(401)
-      //     .json({ message: "Não autorizado: token inválido ou ausente" });
-      // }
 
       const deletedCategory = await Category.destroy({
         where: {

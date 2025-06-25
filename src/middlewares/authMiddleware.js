@@ -31,7 +31,6 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // *** VALIDAÇÃO ESPECÍFICA DE USUÁRIO ***
     const requestedUserId = parseInt(req.params.id);
     const tokenUserId = decoded.userId;
 
@@ -58,7 +57,6 @@ const authMiddleware = async (req, res, next) => {
       });
     }
     
-    console.error('Erro no middleware de autenticação:', error);
     return res.status(500).json({ 
       error: 'Erro interno do servidor' 
     });
