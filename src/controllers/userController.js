@@ -24,7 +24,7 @@ class UserController {
 
   async register(req, res) {
     try {
-      const body = req.body;   
+      const body = req.body;
       if (!body.firstname || !body.surname || !body.email || !body.password) {
         return res.status(400).json({
           message:
@@ -32,7 +32,7 @@ class UserController {
         });
       }
       body.password = await bcrypt.hash(body.password, 10);
-      
+
       const newUser = await User.create(body);
       if (!newUser) {
         return res.status(400).json({ message: "Dados incorretos" });
@@ -52,12 +52,12 @@ class UserController {
         },
       });
       console.log(user);
-      
+
       if (!user) {
         return res.status(400).json({ error: "Credenciais inválidas" });
       }
       const isValidPassword = await bcrypt.compare(password, user.password);
-      
+
       if (!isValidPassword) {
         return res.status(400).json({ error: "Credenciais inválidas" });
       }
@@ -70,11 +70,11 @@ class UserController {
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );
-      return res.status(200).json({token: token})
+      return res.status(200).json({ token: token });
     } catch (error) {
       return res.status(500).json({
-        error: "Erro interno do servidor"
-      })
+        error: "Erro interno do servidor",
+      });
     }
   }
 
