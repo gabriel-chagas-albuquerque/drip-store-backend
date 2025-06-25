@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 class UserController {
   async consultForId(req, res) {
@@ -23,16 +24,15 @@ class UserController {
 
   async register(req, res) {
     try {
-      const body = req.body;
+      const body = req.body;   
       if (!body.firstname || !body.surname || !body.email || !body.password) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Todos os campos são obrigatórios (firstname, surname, email, password)",
-          });
+        return res.status(400).json({
+          message:
+            "Todos os campos são obrigatórios (firstname, surname, email, password)",
+        });
       }
       body.password = await bcrypt.hash(body.password, 10);
+      
       const newUser = await User.create(body);
       if (!newUser) {
         return res.status(400).json({ message: "Dados incorretos" });
@@ -43,23 +43,50 @@ class UserController {
     }
   }
 
+  async tokenGenerate(req, res) {
+    try {
+      const { email, password } = req.body;
+      const user = await User.findOne({
+        where: {
+          email: email.toLowerCase(),
+        },
+      });
+      console.log(user);
+      
+      if (!user) {
+        return res.status(400).json({ error: "Credenciais inválidas" });
+      }
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      
+      if (!isValidPassword) {
+        return res.status(400).json({ error: "Credenciais inválidas" });
+      }
+
+      const token = jwt.sign(
+        {
+          userId: user.id,
+          email: user.email,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "24h" }
+      );
+      return res.status(200).json({token: token})
+    } catch (error) {
+      return res.status(500).json({
+        error: "Erro interno do servidor"
+      })
+    }
+  }
+
   async update(req, res) {
     try {
       const id = req.params.id;
       const body = req.body;
-      // if (!req.user) {
-      //   return res
-      //     .status(401)
-      //     .json({ message: "Não autorizado: token inválido ou ausente" });
-      // }
 
       if (!body || Object.keys(body).length === 0) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Requisição inválida: nenhum dado enviado para atualização",
-          });
+        return res.status(400).json({
+          message: "Requisição inválida: nenhum dado enviado para atualização",
+        });
       }
       const [affectedRows] = await User.update(body, {
         where: {
@@ -68,20 +95,16 @@ class UserController {
       });
 
       if (affectedRows.length === 0) {
-        return res
-          .status(404)
-          .json({
-            message: "Usuário não encontrado ou nenhum dado foi alterado",
-          });
+        return res.status(404).json({
+          message: "Usuário não encontrado ou nenhum dado foi alterado",
+        });
       }
       res.status(204).send();
     } catch (error) {
-      return res
-        .status(500)
-        .json({
-          message: "Erro ao atualizar os dados do usuário",
-          error: error.message,
-        });
+      return res.status(500).json({
+        message: "Erro ao atualizar os dados do usuário",
+        error: error.message,
+      });
     }
   }
 
@@ -95,24 +118,21 @@ class UserController {
       // }
 
       const deletedUser = await User.destroy({
-        where:{
-          id: id
-        }
-      })
+        where: {
+          id: id,
+        },
+      });
 
-      if(!deletedUser) {
-        return res.status(404).json({message: "Usuário não encontrado"})
+      if (!deletedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
       }
       res.status(204).send();
     } catch (error) {
-      return res
-        .status(500)
-        .json({
-          message: "Erro ao atualizar os dados do usuário",
-          error: error.message,
-        });
+      return res.status(500).json({
+        message: "Erro ao atualizar os dados do usuário",
+        error: error.message,
+      });
     }
-
   }
 }
 

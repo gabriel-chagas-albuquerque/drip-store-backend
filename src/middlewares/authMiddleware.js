@@ -1,20 +1,68 @@
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-const authMiddleware = (req,res,next) => {
-    return next()
-    const token = req.headers['authorization']
-
-    if (!token) {
-        res.status(403).json({message:'Token não fornecido'})
-    } 
-
-    try {
-        const decoded = jwt.verify(token, process.env.APP_KEY_TOKEN)
-        req.usuarioId = decoded.id
-        next()
-    } catch(err) {
-        res.status(403).json({message:'Token inválido'})
+const authMiddleware = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ 
+        error: 'Token de acesso requerido' 
+      });
     }
-}
 
-module.exports = authMiddleware
+    const token = authHeader.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({ 
+        error: 'Token de acesso requerido' 
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    const user = await User.findByPk(decoded.userId, {
+      attributes: { exclude: ['password'] }
+    });
+    
+    if (!user) {
+      return res.status(401).json({ 
+        error: 'Usuário não encontrado' 
+      });
+    }
+
+    // *** VALIDAÇÃO ESPECÍFICA DE USUÁRIO ***
+    const requestedUserId = parseInt(req.params.id);
+    const tokenUserId = decoded.userId;
+
+    if (requestedUserId !== tokenUserId) {
+      return res.status(403).json({ 
+        error: 'Acesso negado: você só pode acessar seus próprios dados' 
+      });
+    }
+
+    req.user = user;
+    req.userId = decoded.userId;
+    
+    next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ 
+        error: 'Token inválido' 
+      });
+    }
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        error: 'Token expirado' 
+      });
+    }
+    
+    console.error('Erro no middleware de autenticação:', error);
+    return res.status(500).json({ 
+      error: 'Erro interno do servidor' 
+    });
+  }
+};
+
+module.exports = authMiddleware;

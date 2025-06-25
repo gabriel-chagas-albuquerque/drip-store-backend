@@ -1,12 +1,10 @@
 require('dotenv').config()
 const express = require('express')
 const app = express()
-const privateRoutes = require('./routes/privateRoutes')
-const publicRoutes = require('./routes/publicRoutes')
+const routes = require('./routes/routes')
 
 app.use(express.json())
-app.use('/v1',publicRoutes)
-app.use('/v1',privateRoutes)
+app.use('/v1',routes)
 
 const PORT = 3000
 app.listen(PORT, () => {
