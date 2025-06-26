@@ -51,7 +51,6 @@ class UserController {
           email: email.toLowerCase(),
         },
       });
-      console.log(user);
 
       if (!user) {
         return res.status(400).json({ error: "Credenciais inválidas" });

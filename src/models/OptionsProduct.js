@@ -4,7 +4,9 @@ const Product = require("./Product");
 
 class OptionsProduct extends Model {
   static association() {
-     OptionsProduct.belongsTo(Product,{foreignKey: "product_id"})
+     OptionsProduct.belongsTo(Product,{
+      foreignKey: "product_id"
+    })
    }
 }
 
@@ -53,6 +55,7 @@ OptionsProduct.init(
     timestamps:false,
     sequelize: sequelize,
     modelName: "options_product",
+    tableName: "options_products"
   }
 );
 

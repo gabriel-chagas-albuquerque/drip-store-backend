@@ -5,9 +5,11 @@ class Product extends Model {
   static associate(ImageProduct, OptionsProduct, Category, ProductsCategory) {
     Product.hasMany(ImageProduct, {
       foreignKey: "product_id",
+      as: "images_products"
     })
     Product.hasMany(OptionsProduct, {
-      foreignKey: "product_id"
+      foreignKey: "product_id",
+      as: "options_products"
     })
     Product.belongsToMany(Category,{
       through: ProductsCategory,

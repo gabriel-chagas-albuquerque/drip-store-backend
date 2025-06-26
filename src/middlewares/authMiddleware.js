@@ -31,16 +31,6 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // *** VALIDAÇÃO ESPECÍFICA DE USUÁRIO ***
-    const requestedUserId = parseInt(req.params.id);
-    const tokenUserId = decoded.userId;
-
-    if (requestedUserId !== tokenUserId) {
-      return res.status(403).json({ 
-        error: 'Acesso negado: você só pode acessar seus próprios dados' 
-      });
-    }
-
     req.user = user;
     req.userId = decoded.userId;
     

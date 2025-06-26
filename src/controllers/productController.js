@@ -9,6 +9,7 @@ class ProductController {
   constructor() {
     Product.associate(ImageProduct, OptionsProduct, Category, ProductsCategory);
   }
+  
   async search(req, res) {
     try {
       const {
@@ -36,20 +37,24 @@ class ProductController {
         include: [
           {
             model: ImageProduct,
+            as: "images_products", // Use o alias definido
             attributes:
               fields && fields.includes("images") ? undefined : ["id", "path"],
           },
           {
             model: OptionsProduct,
+            as: "options_products", // Use o alias definido
             attributes: ["id", "title", "shape", "radius", "type", "values"],
           },
         ],
         where: {},
       };
+      
       if (parsedLimit !== -1) {
         queryOptions.limit = parsedLimit;
         queryOptions.offset = (parsedPage - 1) * parsedLimit;
       }
+      
       if (match) {
         queryOptions.where[Op.or] = [
           { name: { [Op.like]: `%${match}%` } },
@@ -64,7 +69,6 @@ class ProductController {
         queryOptions.where.category_id = { [Op.in]: categoryArray };
       }
 
-      // Filtro por faixa de preço
       if (priceRange) {
         const [minPrice, maxPrice] = priceRange
           .split("-")
@@ -143,9 +147,11 @@ class ProductController {
         include: [
           {
             model: ImageProduct,
+            as: "images_products", // Use o alias definido
           },
           {
             model: OptionsProduct,
+            as: "options_products", // Use o alias definido
           },
         ],
       });
@@ -172,21 +178,29 @@ class ProductController {
             "Todos os campos são obrigatórios (name, slug, price, price_with_discount)",
         });
       }
+
+      // Cria o produto com os relacionamentos
       const newProduct = await Product.create(body, {
         include: [
           {
             model: ImageProduct,
+            as: "images_products", // Use o alias definido
           },
           {
             model: OptionsProduct,
+            as: "options_products", // Use o alias definido
           },
         ],
       });
+
       if (!newProduct) {
         return res.status(400).json({ message: "Dados incorretos" });
       }
-      return res.status(201).json({ message: "Produto criado com sucesso" });
+      return res.status(201).json({ 
+        message: "Produto criado com sucesso"
+      });
     } catch (error) {
+      console.error('Erro detalhado:', error); // Para debug
       return res
         .status(500)
         .json({ message: "Erro ao cadastrar produto", error: error.message });
@@ -197,24 +211,20 @@ class ProductController {
     try {
       const id = req.params.id;
       const body = req.body;
-      // if (!req.user) {
-      //   return res
-      //     .status(401)
-      //     .json({ message: "Não autorizado: token inválido ou ausente" });
-      // }
 
       if (!body || Object.keys(body).length === 0) {
         return res.status(400).json({
           message: "Requisição inválida: nenhum dado enviado para atualização",
         });
       }
+      
       const [affectedRows] = await Product.update(body, {
         where: {
           id: id,
         },
       });
 
-      if (affectedRows.length === 0) {
+      if (affectedRows === 0) { // Corrigido: affectedRows é um número, não array
         return res.status(404).json({
           message: "Produto não encontrado ou nenhum dado foi alterado",
         });
@@ -244,7 +254,7 @@ class ProductController {
       res.status(204).send();
     } catch (error) {
       return res.status(500).json({
-        message: "Erro ao atualizar os dados do produto",
+        message: "Erro ao deletar o produto",
         error: error.message,
       });
     }
