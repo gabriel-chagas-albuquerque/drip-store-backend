@@ -7,6 +7,7 @@ const productController = new ProductController()
 
 router.get('/search',productController.search)
 router.get('/:id',productController.consultForId)
+
 router.post('/', authMiddleware, productController.register)
 router.put('/:id', authMiddleware, productController.update)
 router.delete('/:id', authMiddleware, productController.delete)

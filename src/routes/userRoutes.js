@@ -7,8 +7,8 @@ const userController = new UserController()
 
 router.post('/', userController.register)
 router.post('/token', userController.tokenGenerate)
-
-router.get('/:id', userController.consultForId)  
+router.get('/:id', userController.consultForId)
+  
 router.put('/:id', authMiddleware, userController.update) 
 router.delete('/:id', authMiddleware, userController.delete) 
 
