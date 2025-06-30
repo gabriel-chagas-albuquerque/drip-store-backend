@@ -328,12 +328,6 @@ src/
 ```bash
 # Desenvolvimento com hot reload
 npm run dev
-
-# Produção
-npm start
-
-# Testes (ainda não configurado)
-npm test
 ```
 
 ## 🔒 Middleware de Autenticação
