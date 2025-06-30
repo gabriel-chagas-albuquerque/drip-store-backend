@@ -322,14 +322,6 @@ src/
 │   └── database.js              # Configuração do Sequelize
 └── server.js                    # Arquivo principal
 ```
-
-## 🔧 Scripts Disponíveis
-
-```bash
-# Desenvolvimento com hot reload
-npm run dev
-```
-
 ## 🔒 Middleware de Autenticação
 
 O projeto utiliza middleware JWT para proteger rotas sensíveis:
